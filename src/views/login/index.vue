@@ -5,7 +5,8 @@
         <div class="login-content-main">
           <div class="login-icon-group">
             <div class="login-icon-group-title">
-              <img :src="logoMini" />
+              <!-- <img :src="logoMini"/> -->
+			  <img src="/favicon.ico" style="width: 3em; height: 3em"/>&nbsp;&nbsp;&nbsp;&nbsp;
               <div class="login-icon-group-title-text font25">{{ getThemeConfig.globalViceTitle }}</div>
             </div>
           </div>
@@ -31,7 +32,7 @@
       <div class="login-footer-content mt15">
         <div class="login-footer-content-warp">
           <div>Copyright © 2021-2023 g-fast.cn All Rights Reserved.</div>
-          <div class="mt5">云南奇讯科技有限公司版权所有</div>
+          <div class="mt5">仁软科技成都有限公司版权所有</div>
         </div>
       </div>
     </div>
