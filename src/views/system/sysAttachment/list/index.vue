@@ -153,8 +153,14 @@
              />
           <el-table-column label="本地路径" align="center" prop="path" min-width="100px">
             <template #default="scope">
-              <el-image
-                  v-if="scope.row.kind=='image'"
+				
+			<div v-if="scope.row.kind=='video'">
+										<video :src="proxy.getUpFileUrl(scope.row.path)" class="avatar video-avatar" controls autoplay loop width="80px" height="80px"/>
+									</div>
+				
+				
+            <el-image
+                  v-else-if="scope.row.kind=='image'"
                   style="width: 60px; height: 60px"
                   :src="proxy.getUpFileUrl(scope.row.path)"
                   :zoom-rate="1.2"
@@ -175,6 +181,20 @@
                   </div>
                 </template>
               </el-image>
+			  
+<!-- 						<div v-if="scope.row.path.endsWith('mp4')">
+							<video :src="proxy.getUpFileUrl(scope.row.path)" class="avatar video-avatar" controls preload="auto" loop width="80px" height="70px"/>
+						</div>
+						<el-image
+							v-else
+							:src="proxy.getUpFileUrl(scope.row.path)"
+							fit="fill"
+							loading="lazy"
+							preview-teleported="true"
+							:preview-src-list="[proxy.getUpFileUrl(scope.row.path)]"
+						/> -->
+			  
+			  
             </template>
           </el-table-column>
           <el-table-column label="文件大小" align="center" prop="size" :formatter="formatFileSize"
