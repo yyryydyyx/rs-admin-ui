@@ -1,49 +1,57 @@
 <template>
-	<div class="upload-container">
-		<!-- 上传区域 -->
+	<div class="up-img" v-if="limit > 1">
 		<el-upload v-model:file-list="dataFileList" :limit="limit" :action="action" :multiple="multiple"
 			:list-type="listType" :on-success="handleAvatarSuccess" :on-preview="handlePictureCardPreview"
 			:on-remove="handleRemove" :on-exceed="handleExceed" :before-upload="beforeAvatarUpload" :data="dataParam"
 			:auto-upload="false" ref="upImageRef">
 			<el-icon><ele-Plus /></el-icon>
 
-			<template #tip>
-				<div class="el-upload__tip">
-					支持 jpg/png/pdf 文件，且只能上传一次（填写描述后提交表单）
+			<!-- 自定义每个文件项的显示 -->
+			<!-- 			<el-button type="primary">选择图片</el-button> -->
+
+
+			<template #file="{ file }">
+				<div class="custom-upload-item">
+					<!-- <img :src="file.url" class="preview-img" /> -->
+					<el-image :src="file.url" fit="contain" />
+					<el-input v-model="file.desc" placeholder="输入图片描述" size="small"
+						style="width: 220px; margin: 0 12px" />
+					<el-button type="danger" link size="small" @click="handleRemove(file, dataFileList)">删除</el-button>
 				</div>
 			</template>
 
-			<!-- 自定义文件列表区域：用于显示文件和输入描述 -->
-			<template #file="{ file }">
-				<div class="custom-upload-item">
-					<el-image :src="file.url" fit="contain" />
-					<span class="file-name">{{ file.name }}</span>
-					<!-- 上传状态提示 -->
-					<el-tag v-if="file.status === 'success'" type="success" size="small">上传成功</el-tag>
-					<el-tag v-else-if="file.status === 'uploading'" type="info" size="small">上传中...</el-tag>
-					<!-- 描述输入框 -->
-					<el-input v-model="file.description" placeholder="请输入该文件的描述" size="small" class="file-desc-input">
-					</el-input>
-
-				</div>
-
-
+			<template #tip>
+				<div class="el-upload__tip">支持多张图片，每张可填写描述</div>
 			</template>
 		</el-upload>
 
+		<!-- 		<el-dialog v-model="dialogVisible">
+			<el-image :src="dialogImageUrl" fit="contain" />
+		</el-dialog>
+		<p>{{dataParam.description}}</p>
+		<el-input v-model="dataParam.description" placeholder="输入图片描述" size="small"
+			style="width: 220px; margin: 0 12px" /> -->
 
+
+	</div>
+	<div class="up-img" v-else>
+		<el-upload v-model:file-list="dataFileList" class="avatar-uploader" :action="action" :show-file-list="false"
+			:on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload" :on-preview="handlePictureCardPreview"
+			:on-remove="handleRemove" :data="dataParam">
+			<img v-if="imageUrl" :src="imageUrl" class="avatar" />
+			<el-icon v-else class="avatar-uploader-icon"><ele-Plus /></el-icon>
+		</el-upload>
 	</div>
 </template>
 
 <script lang="ts">
+	/* eslint-disable vue/no-side-effects-in-computed-properties,no-console */
 	import { defineComponent, ref, computed, getCurrentInstance, reactive, onMounted } from 'vue';
-	import { ElMessage } from 'element-plus'
-	import { UploadFilled, Document, Edit } from '@element-plus/icons-vue'
-	import type { UploadUserFile, UploadProps } from 'element-plus'
+	import type { UploadProps, UploadUserFile } from 'element-plus';
+	import { ElMessage } from 'element-plus';
 	import { getToken } from '/@/utils/gfast';
 	import _ from 'lodash';
 	import { getBatchByKey } from '/@/api/system/config';
-
 	export default defineComponent({
 		name: 'uploadImg',
 		props: {
@@ -85,7 +93,7 @@
 
 			// 定义文件类型扩展，添加 description 字段
 			interface FileItem extends UploadUserFile {
-				desc ?: string
+				description ?: string
 			};
 			let uploadedFile : Array<any> = [];
 			// const let = ref<FileItem[]>([])
@@ -227,22 +235,6 @@
 					serverConfig.loaded = true;
 				}
 			};
-			const submitAll = async () => {
-				for (let f of dataFileList.value) {
-					const formData = new FormData()
-					formData.append('file', f.raw)
-					formData.append('desc', f.desc || '')
-
-					try {
-						await axios.post('http://127.0.0.1:8080/upload/image', formData, {
-							headers: { 'Content-Type': 'multipart/form-data' }
-						})
-						ElMessage.success(`${f.name} 上传成功`)
-					} catch (err) {
-						ElMessage.error(`${f.name} 上传失败`)
-					}
-				}
-			};
 			onMounted(() => {
 				loadServerConfig();
 			});
@@ -263,67 +255,37 @@
 				handleAvatarSuccess,
 				stopUpImage,
 				dataParam,
-				submitAll
 			};
-		}
-
-	})
+		},
+	});
+	/* eslint-enable vue/no-side-effects-in-computed-properties */
 </script>
 
 <style scoped>
-	.upload-container {
-		width: 100%;
-		max-width: 800px;
-		margin: 20px auto;
+	.up-img :deep(.avatar-uploader .avatar) {
+		width: 178px;
+		height: 178px;
+		display: block;
 	}
 
-	.file-list-container {
-		margin-top: 20px;
-		padding: 15px;
-		border: 1px solid #ebeef5;
-		border-radius: 4px;
-		background-color: #fafafa;
+	.up-img :deep(.avatar-uploader .el-upload) {
+		border: 1px dashed var(--el-border-color);
+		border-radius: 6px;
+		cursor: pointer;
+		position: relative;
+		overflow: hidden;
+		transition: var(--el-transition-duration-fast);
 	}
 
-	.file-list-container h4 {
-		margin-top: 0;
-		margin-bottom: 15px;
-		color: #303133;
-		font-size: 14px;
+	.up-img :deep(.avatar-uploader .el-upload:hover) {
+		border-color: var(--el-color-primary);
 	}
 
-	.file-item {
-		display: flex;
-		align-items: center;
-		padding: 10px 0;
-		border-bottom: 1px solid #ebeef5;
-	}
-
-	.file-item:last-child {
-		border-bottom: none;
-	}
-
-	.file-info {
-		display: flex;
-		align-items: center;
-		min-width: 150px;
-		margin-right: 15px;
-	}
-
-	.file-icon {
-		font-size: 24px;
-		color: #409eff;
-		margin-right: 10px;
-	}
-
-	.file-name {
-		font-size: 14px;
-		color: #606266;
-		margin-right: 10px;
-	}
-
-	.file-desc-input {
-		flex: 1;
-		/* 让输入框占据剩余空间 */
+	.up-img :deep(.el-icon.avatar-uploader-icon) {
+		font-size: 28px;
+		color: #8c939d;
+		width: 178px;
+		height: 178px;
+		text-align: center;
 	}
 </style>
